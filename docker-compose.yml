@@ -1,0 +1,13 @@
+version: "2"
+
+services:
+  omg-spree:
+    image: 802248536421.dkr.ecr.us-east-2.amazonaws.com/mirzasa-ecr-dev:nginx
+    ports: 
+      - 80:80
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: /ecs/mirzasa-ecr-dev
+        awslogs-region: us-east-2
+        awslogs-stream-prefix: ecs

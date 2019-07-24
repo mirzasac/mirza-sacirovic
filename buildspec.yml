@@ -1,0 +1,20 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions: 
+      docker: 18
+    commands:
+      - $(curl -o /usr/local/bin/ecs-cli https://s3.amazonaws.com/amazon-ecs-cli/ecs-cli-linux-amd64-v1.12.0)
+      - $(chmod +x /usr/local/bin/ecs-cli)
+  pre_build:
+    commands:
+      - $(aws ecr get-login --region ${aws_default_region} --no-include-email)
+  build:
+    commands:
+      - docker build -f cicd/Dockerfile -t mirzasa-ecr-dev:nginx .
+      - docker tag mirzasa-ecr-dev:nginx 802248536421.dkr.ecr.us-east-2.amazonaws.com/mirzasa-ecr-dev:nginx
+      - docker push 802248536421.dkr.ecr.us-east-2.amazonaws.com/mirzasa-ecr-dev:nginx
+  post_build:
+    commands:
+      - $(ecs-cli configure --cluster mirzasa-ecs-dev)
+      - $(ecs-cli compose --project-name mirzasa-dev --ecs-params mirzasa-cicd/ecs-params.yml --file mirzasa-cicd/docker-compose.yml service up --launch-type FARGATE --deployment-max-percent 200 --deployment-min-healthy-percent 100)
